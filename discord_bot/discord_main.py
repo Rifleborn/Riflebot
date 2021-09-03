@@ -10,25 +10,34 @@ from config import settings
 from discord.ext import commands
 from discord.utils import find
 
-#command prefix (was chosen acording to other bots prefix on server)
-bot = commands.Bot(command_prefix='/')
 
+# discord client object
 client = discord.Client()
 
+#command prefix (was chosen acording to other bots prefix on server)
+#client = commands.Bot(command_prefix='/') NOT WORKS PROPERLY
 @client.event
-async def on_ready(ctx):
-   await ctx.send('Hello')
+async def on_ready():
+    print('We have logged in as {0.user}'.format(client))
+
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+
+    if message.content.startswith('$hello'):
+        await message.channel.send('Hello!')
 
 #commands (consist of def(async), and sending some info, media etc.
-@bot.command()
-async def фашист(ctx):
+@client.command()
+async def fascist(ctx):
     # await ctx.send('https://cdn.discordapp.com/attachments/836508755188514816/882245118613127168/IMG_20191226_195441_-_.jpg')
     await ctx.send(file=discord.File('images/bonov_eating.gif'))
 
-@bot.command()
+@client.command()
 async def what_to_play(ctx):
     await ctx.send('Arma 3')
     await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
 
 #launch
-bot.run(settings['TOKEN'])
+client.run(settings['TOKEN'])
