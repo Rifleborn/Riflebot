@@ -23,8 +23,9 @@ async def on_message(message):
     # if this message author is our bot(client)
     if message.author == bot.user:
         return
-    #prefix
+
     print(f'User ID: {message.author}\nMessage: {message.content}\n')
+    # start for checking player commands
     if message.content.startswith('/'):
         if message.content.startswith('/hi'):
             # message with mention of author(user)
