@@ -7,6 +7,8 @@
 #4. як відправляти емодзі
 #5. вивід в лог чат
 #6. команду help
+#7. очистка БД (тільки адміністратором по ролі) !!!
+#запис до БД повідомлень користувачів
 import discord
 
 from config import settings
@@ -47,30 +49,42 @@ async def on_ready():
     await channel.send(f'Ready to engage')
 
 @bot.command()
-async def help(context):
-    await context.send("Custom help command")
+async def help(ctx):
+    await ctx.send("Custom help command")
 
+@bot.command()
+async def shit(ctx):
+    await ctx.send("Some shit")
+
+
+# commands
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)
+
     # if this message author is our bot(client)
     if message.author == bot.user:
         return
 
     #insert data (using ? for safety inserting without SQL injections
-    cursor.execute('INSERT INTO users_messages VALUES(?, ?, ?)', (str(message.author), str(message.content), 'ff'))
-
+    cursor.execute('INSERT INTO users_messages VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
     sqlite_connection.commit()
 
-    print(f'User ID: {message.author}\nMessage: {message.content}\n')
+    # debug
+    print(f'User ID: {message.author}\nMessage: {message.content}\nDate/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n')
+
     # start for checking player commands
     if message.content.startswith('/'):
         if message.content.startswith('/hi'):
             # message with mention of author(user)
             await message.channel.send(f'Hello {message.author.mention}!')
+
         if message.content.startswith('/fascist'):
             # message with mention of author(user)
             await message.channel.send(f'{message.author.mention}')
             await message.channel.send(file=discord.File('images/bonov_eating.gif'))
+
+
 
 #launch
 bot.run(settings['TOKEN'])
