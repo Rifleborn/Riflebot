@@ -8,6 +8,9 @@
 #5. вивід в лог чат
 #6. команду help
 #7. очистка БД (тільки адміністратором по ролі) !!!
+#=======NEW=========
+#8. /help
+#9. робити зсув message_id при видаленні/очистці БД
 #запис до БД повідомлень користувачів
 import discord
 
@@ -19,6 +22,7 @@ import os
 
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
 
+Commands = {"/clear_db"}
 # connecting to database
 try:
     sqlite_connection = sqlite3.connect('users.db')
@@ -46,7 +50,16 @@ async def on_ready():
     print('We have logged in as {0.user}\n'.format(bot))
     #getting channel by id (using development mod in discord)
     channel = bot.get_channel(settings['TEST_CHANNEL'])
+    #channel = bot.get_channel(settings['чат'])
     await channel.send(f'Ready to engage')
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def clear_db(ctx):
+    cursor.execute('DELETE FROM users_messages WHERE message_id > 0')
+    sqlite_connection.commit()
+    await ctx.send("Database cleared")
+    print("Database cleared\n")
 
 #context - same channel in which command (help) was writed
 @bot.command()
@@ -55,32 +68,26 @@ async def help(ctx):
 
 @bot.command()
 async def show(ctx):
-    await ctx.send("delete test")
-    #cursor.execute('DELETE FROM users_messages WHERE message_id)
-    sqlite_connection.commit()
+    await ctx.send("dfadsfafdaest")
 
 @bot.command()
-async def shit(ctx):
-    await ctx.send("Some shit")
-
+async def ss(ctx):
+    emoji = discord.utils.get(bot.emojis, name=':police:')
+    await ctx.send(str(emoji))
+    await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
+    await ctx.send('<:police:>')
 
 # commands
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
 
-    # if this message author is our bot(client)
-    if message.author == bot.user:
-        return
-
-    #insert data (using ? for safety inserting without SQL injections
-    #insert into Students(Address, Passport, SNP, BirthYear, Gender, PrivelegeCode, StudentGroup, Room, ColonizeDate) values(?, ?, ?, ?, ?, ?, ?, ?, ?)
-    #c.executemany('INSERT INTO q1_person_name(first_name, last_name) VALUES (?,?)', data_person_name)
-    cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date) VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
-    sqlite_connection.commit()
-
-    # debug
-    print(f'User ID: {message.author}\nMessage: {message.content}\nDate/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n')
+    # insert message to DB if it isnt bot's message and not "/clear_db" command
+    if (message.content != "/clear_db") and (message.author != bot.user):
+        cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date) VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
+        sqlite_connection.commit()
+        # debug
+        print(f'User ID: {message.author}\nMessage: {message.content}\nDate/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n')
 
     # start for checking player commands
     if message.content.startswith('/'):
@@ -93,6 +100,10 @@ async def on_message(message):
             await message.channel.send(f'{message.author.mention}')
             await message.channel.send(file=discord.File('images/bonov_eating.gif'))
 
+        if message.content.startswith('/emoji'):
+            await message.channel.send("<:police:884470225452560445>")
+            #await message.channel.send(str(bot.get_emoji('884474673151221772')))
+            #await message.channel.send("<:up10:12345>")
 
 
 #launch
