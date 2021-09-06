@@ -48,9 +48,16 @@ async def on_ready():
     channel = bot.get_channel(settings['TEST_CHANNEL'])
     await channel.send(f'Ready to engage')
 
+#context - same channel in which command (help) was writed
 @bot.command()
 async def help(ctx):
     await ctx.send("Custom help command")
+
+@bot.command()
+async def show(ctx):
+    await ctx.send("delete test")
+    #cursor.execute('DELETE FROM users_messages WHERE message_id)
+    sqlite_connection.commit()
 
 @bot.command()
 async def shit(ctx):
@@ -67,7 +74,9 @@ async def on_message(message):
         return
 
     #insert data (using ? for safety inserting without SQL injections
-    cursor.execute('INSERT INTO users_messages VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
+    #insert into Students(Address, Passport, SNP, BirthYear, Gender, PrivelegeCode, StudentGroup, Room, ColonizeDate) values(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    #c.executemany('INSERT INTO q1_person_name(first_name, last_name) VALUES (?,?)', data_person_name)
+    cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date) VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
     sqlite_connection.commit()
 
     # debug
