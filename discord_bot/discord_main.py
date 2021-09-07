@@ -1,18 +1,22 @@
 #comment - ctrl + /
-#========================================================================================================
+#==================================VER 0.0.1======================================================================
 #tasks
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
 #3. повідомлення в конкретний канал
-#4. як відправляти емодзі
-#5. вивід в лог чат
+#4. як відправляти емодзі CAN'T
+#5. вивід в лог чат DONE
 #6. команду help
-#7. очистка БД (тільки адміністратором по ролі) !!!
+#7. очистка БД (тільки адміністратором по ролі) !!! DONE
 #=======NEW=========
 #8. /help
 #9. робити зсув message_id при видаленні/очистці БД
-#10. /get_latest - найостанніше повідомлення від користувача
+#10. /get_latest - найостанніше повідомлення від користувача NEED FIX BY USER_NAME
 #запис до БД повідомлень користувачів
+#11. читання rss з сайта і відсилання в діскорд
+#12. голосовуха
+#13. закриття бд
+#14. колонку в БД з назвою сервера звідки прийшло повідомлення
 import discord
 
 from config import settings
@@ -54,6 +58,7 @@ async def on_ready():
     #channel = bot.get_channel(settings['чат'])
     await channel.send(f'Ready to engage')
 
+# admin commands
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def clear_db(ctx):
@@ -61,6 +66,21 @@ async def clear_db(ctx):
     sqlite_connection.commit()
     await ctx.send("Database cleared")
     print("Database cleared\n")
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def get_latest(ctx):
+    user_id_text = ctx.message.author.name;
+    #cursor.execute('SELECT user_id, message_text, message_date FROM users_messages WHERE (message_id = (SELECT MAX(message_id) and user_id like "%user_id_text" ) FROM users_messages);')
+    #cursor.execute('SELECT user_id, message_text, message_date FROM users_messages WHERE ((message_id = (SELECT MAX(message_id)) FROM users_messages) and (user_id = "{user_id_text}" FROM users_messages))')
+    cursor.execute('SELECT user_id, message_text, message_date '
+                   'FROM users_messages '
+                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "{user_id_text}"))')
+    # printing row with user_id, message_text, message_date
+    #print("===Last message of user ", user_id_text)
+    for row in cursor:
+        print(row)
+    sqlite_connection.commit()
 
 #context - same channel in which command (help) was writed
 @bot.command()
