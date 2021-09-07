@@ -25,6 +25,7 @@ from discord.utils import find
 import sqlite3
 import os
 
+#command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
 
 Commands = {"/clear_db"}
@@ -46,7 +47,7 @@ except sqlite3.Error as error:
 # finally:
 #     if (sqlite_connection):
 #         sqlite_connection.close()
-#         print("Соединение с SQLite закрыто")
+#         print("Connection with SQLite closed")
 
 #========================================================================================
 #event when bot is online
@@ -58,6 +59,7 @@ async def on_ready():
     #channel = bot.get_channel(settings['чат'])
     await channel.send(f'Ready to engage')
 
+#commands (consist of def(async), and sending some info, media etc.
 # admin commands
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -130,15 +132,9 @@ async def on_message(message):
 #launch
 bot.run(settings['TOKEN'])
 #============================================OLD============================================================
-# discord client object
-#client = discord.Client()
-
-#command prefix (was chosen acording to other bots prefix on server)
-#client = commands.Bot(command_prefix='/') NOT WORKS PROPERLY
 # @client.event
 # async def on_ready():
 #     print('We have logged in as {0.user}'.format(client))
-#
 # @client.event
 # async def on_message(message):
 #     # if this message author is our bot(client)
@@ -150,18 +146,6 @@ bot.run(settings['TOKEN'])
 #         if message.content.startswith('/hi'):
 #             # message with mention of author(user)
 #             await message.channel.send(f'Hello {message.author.mention}!')
-#         if message.content.startswith('/fascist'):
-#             # message with mention of author(user)
-#             await message.channel.send(f'{message.author.mention}')
-#             await message.channel.send(file=discord.File('images/bonov_eating.gif'))
-
-#commands (consist of def(async), and sending some info, media etc.
-
-#@client.command()
-#async def fascist(ctx):
-    # await ctx.send('https://cdn.discordapp.com/attachments/836508755188514816/882245118613127168/IMG_20191226_195441_-_.jpg')
-#    await ctx.send(file=discord.File('images/bonov_eating.gif'))
-
 #@client.command()
 #async def what_to_play(ctx):
 #    await ctx.send('Arma 3')
