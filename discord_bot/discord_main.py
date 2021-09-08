@@ -59,8 +59,10 @@ async def on_ready():
     #channel = bot.get_channel(settings['чат'])
     await channel.send(f'Ready to engage')
 
-#commands (consist of def(async), and sending some info, media etc.
-# admin commands
+#==========commands (consist of def(async), and sending some info, media etc.============
+
+#==========admin commands===========
+#clearing DB
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def clear_db(ctx):
@@ -69,30 +71,28 @@ async def clear_db(ctx):
     await ctx.send("Database cleared")
     print("Database cleared\n")
 
+#getting latest user's message
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def get_latest(ctx):
     user_id_text = ctx.message.author.name;
-    #cursor.execute('SELECT user_id, message_text, message_date FROM users_messages WHERE (message_id = (SELECT MAX(message_id) and user_id like "%user_id_text" ) FROM users_messages);')
-    #cursor.execute('SELECT user_id, message_text, message_date FROM users_messages WHERE ((message_id = (SELECT MAX(message_id)) FROM users_messages) and (user_id = "{user_id_text}" FROM users_messages))')
     cursor.execute('SELECT user_id, message_text, message_date '
                    'FROM users_messages '
                    'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "{user_id_text}"))')
-    # printing row with user_id, message_text, message_date
     #print("===Last message of user ", user_id_text)
     for row in cursor:
         print(row)
     sqlite_connection.commit()
 
+#=====================commands for all users==============================
 #context - same channel in which command (help) was writed
+
+#custom help command
 @bot.command()
 async def help(ctx):
     await ctx.send("Custom help command")
 
-@bot.command()
-async def show(ctx):
-    await ctx.send("dfadsfafdaest")
-
+#test emoji command
 @bot.command()
 async def ss(ctx):
     emoji = discord.utils.get(bot.emojis, name=':police:')
@@ -100,7 +100,7 @@ async def ss(ctx):
     await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
     await ctx.send('<:police:>')
 
-# commands
+# another type of commands (can't remember why i need it)
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -132,20 +132,6 @@ async def on_message(message):
 #launch
 bot.run(settings['TOKEN'])
 #============================================OLD============================================================
-# @client.event
-# async def on_ready():
-#     print('We have logged in as {0.user}'.format(client))
-# @client.event
-# async def on_message(message):
-#     # if this message author is our bot(client)
-#     if message.author == client.user:
-#         return
-#     #prefix
-#     print(f'User ID: {message.author}\nMessage: {message.content}\n')
-#     if message.content.startswith('/'):
-#         if message.content.startswith('/hi'):
-#             # message with mention of author(user)
-#             await message.channel.send(f'Hello {message.author.mention}!')
 #@client.command()
 #async def what_to_play(ctx):
 #    await ctx.send('Arma 3')
