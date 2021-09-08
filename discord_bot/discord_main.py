@@ -1,22 +1,22 @@
 #comment - ctrl + /
-#==================================VER 0.0.1======================================================================
-#tasks
+#==================================VER 0.0.2======================================================================
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
 #3. повідомлення в конкретний канал
-#4. як відправляти емодзі CAN'T
-#5. вивід в лог чат DONE
-#6. команду help
+#6. /команду help
 #7. очистка БД (тільки адміністратором по ролі) !!! DONE
-#=======NEW=========
-#8. /help
 #9. робити зсув message_id при видаленні/очистці БД
 #10. /get_latest - найостанніше повідомлення від користувача NEED FIX BY USER_NAME
-#запис до БД повідомлень користувачів
 #11. читання rss з сайта і відсилання в діскорд
 #12. голосовуха
 #13. закриття бд
 #14. колонку в БД з назвою сервера звідки прийшло повідомлення
+#15. Exception with connection to discord
+#16. send command
+
+# ClientConnectorError(req.connection_key, exc) from exc
+# aiohttp.client_exceptions.ClientConnectorError:
+
 import discord
 
 from config import settings
@@ -27,8 +27,8 @@ import os
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
+Commands = ["/clear_db", "/help", "/fascist", "/get_latest_message"]
 
-Commands = {"/clear_db"}
 # connecting to database
 try:
     sqlite_connection = sqlite3.connect('users.db')
@@ -53,11 +53,14 @@ except sqlite3.Error as error:
 #event when bot is online
 @bot.event
 async def on_ready():
-    print('We have logged in as {0.user}\n'.format(bot))
-    #getting channel by id (using development mod in discord)
-    channel = bot.get_channel(settings['TEST_CHANNEL'])
-    #channel = bot.get_channel(settings['чат'])
-    await channel.send(f'Ready to engage')
+    try:
+        print('We have logged in as {0.user}\n'.format(bot))
+        #getting channel by id (using development mod in discord)
+        channel = bot.get_channel(settings['TEST_CHANNEL'])
+        #channel = bot.get_channel(settings['чат'])
+        await channel.send(f'Ready to engage')
+    except:
+        print("Error with logging")
 
 #==========commands (consist of def(async), and sending some info, media etc.============
 
@@ -90,7 +93,10 @@ async def get_latest(ctx):
 #custom help command
 @bot.command()
 async def help(ctx):
-    await ctx.send("Custom help command")
+    #printing command list with sep
+    commands_list = " "
+    await ctx.send("```Custom help command```")
+    await ctx.send(commands_list.join(Commands))
 
 #test emoji command
 @bot.command()
