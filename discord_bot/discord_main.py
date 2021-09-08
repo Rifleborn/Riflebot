@@ -1,9 +1,12 @@
-#comment - ctrl + /
+#comment - ctrl +
+# Rifleborn bot project on discord API
+# markdown, python, SQL
+
 #==================================VER 0.0.2======================================================================
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
 #3. повідомлення в конкретний канал
-#6. /команду help
+#6. /команду help DONE
 #7. очистка БД (тільки адміністратором по ролі) !!! DONE
 #9. робити зсув message_id при видаленні/очистці БД
 #10. /get_latest - найостанніше повідомлення від користувача NEED FIX BY USER_NAME
@@ -69,7 +72,11 @@ async def on_ready():
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def clear_db(ctx):
-    cursor.execute('DELETE FROM users_messages WHERE message_id > 0')
+    # WHERE message_id > 0
+    cursor.execute('DELETE FROM users_messages')
+    # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
+    tableName = "users_messages";
+    cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + tableName + "'");
     sqlite_connection.commit()
     await ctx.send("Database cleared")
     print("Database cleared\n")
