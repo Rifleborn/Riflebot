@@ -1,8 +1,10 @@
-#comment - ctrl +
-# Rifleborn bot project on discord API
-# markdown, python, SQL
+#==================VER 0.0.2===================
+# ctrl + /
+# Project on discord API #Author: Rifleborn
+# Python (discord.py, XLSX, sqlite3), SQL, Markdown
+# XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
+# XlsxWriter is a Python module for writing files in the Excel 2007+ XLSX file format.
 
-#==================================VER 0.0.2======================================================================
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
 #3. повідомлення в конкретний канал
@@ -26,6 +28,7 @@ import discord
 from config import settings
 from discord.ext import commands
 from discord.utils import find
+import xlsxwriter
 import sqlite3
 import os
 
@@ -52,6 +55,37 @@ except sqlite3.Error as error:
 #     if (sqlite_connection):
 #         sqlite_connection.close()
 #         print("Connection with SQLite closed")
+
+#======xlsx test============
+#
+# create a workbook and add a worksheet.
+workbook = xlsxwriter.Workbook('export/test.xlsx')
+worksheet = workbook.add_worksheet()
+
+# data which we want to write to the worksheet
+expenses = (
+    ['Rent', 1000],
+    ['Gas',   100],
+    ['Food',  300],
+    ['Gym',    50],
+)
+
+# Start from the first cell. Rows and columns are zero indexed.
+row = 0
+col = 0
+
+# Iterate over the data and write it out row by row.
+for item, cost in (expenses):
+    worksheet.write(row, col,     item)
+    worksheet.write(row, col + 1, cost)
+    row += 1
+
+# Write a total using a formula.
+worksheet.write(row, 0, 'Total')
+worksheet.write(row, 1, '=SUM(B1:B4)')
+
+workbook.close()
+
 
 #========================================================================================
 #event when bot is online
@@ -95,6 +129,11 @@ async def get_latest(ctx):
         print(row)
     sqlite_connection.commit()
 
+#get xlsx file
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def get_data(ctx):
+    await ctx.send(file=discord.File(r'export/test.xlsx'))
 #=====================commands for all users==============================
 
 #context or ctx - channel in which command (help) was writed
