@@ -14,8 +14,9 @@
 #12. голосовуха
 #13. закриття бд
 #14. колонку в БД з назвою сервера звідки прийшло повідомлення
-#15. Exception with connection to discord
+#15. exception with connection to discord
 #16. send command
+#17. exception with command like "error command not found"
 
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
@@ -95,7 +96,8 @@ async def get_latest(ctx):
     sqlite_connection.commit()
 
 #=====================commands for all users==============================
-#context - same channel in which command (help) was writed
+
+#context or ctx - channel in which command (help) was writed
 
 #custom help command
 @bot.command()
@@ -113,6 +115,11 @@ async def ss(ctx):
     await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
     await ctx.send('<:police:>')
 
+#test command to get Guild(Server) name
+@bot.command()
+async def server(ctx):
+    await ctx.send(ctx.guild.name)
+
 # another type of commands (can't remember why i need it)
 @bot.event
 async def on_message(message):
@@ -120,10 +127,13 @@ async def on_message(message):
 
     # insert message to DB if it isnt bot's message and not "/clear_db" command
     if (message.content != "/clear_db") and (message.author != bot.user):
-        cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date) VALUES(?, ?, ?)', (str(message.author), str(message.content), str(message.created_at)))
+        cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
+                       (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
         sqlite_connection.commit()
         # debug
-        print(f'User ID: {message.author}\nMessage: {message.content}\nDate/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n')
+        print(f'User ID: {message.author}\nMessage: {message.content}\n'
+              f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
+              f'Server: {message.guild.name}\n')
 
     # start for checking player commands
     if message.content.startswith('/'):
