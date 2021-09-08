@@ -193,10 +193,8 @@ async def on_message(message):
 
 #launch
 bot.run(settings['TOKEN'])
-#============================================OLD============================================================
-#@client.command()
-#async def what_to_play(ctx):
-#    await ctx.send('Arma 3')
+
+#async def emoji_url(ctx):
 #    await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
 
 
