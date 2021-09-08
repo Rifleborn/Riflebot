@@ -101,7 +101,6 @@ async def on_ready():
         print("Error with logging")
 
 #==========commands (consist of def(async), and sending some info, media etc.============
-
 #==========admin commands===========
 #clearing DB
 @bot.command()
