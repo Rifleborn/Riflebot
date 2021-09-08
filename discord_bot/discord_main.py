@@ -19,7 +19,7 @@
 #15. exception with connection to discord
 #16. send command
 #17. exception with command like "error command not found"
-
+#18. глянути візуально на все що вміє бот, щось додумати ще
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 
