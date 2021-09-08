@@ -5,5 +5,3 @@
  1. in discord_main.py
  2. in telegram bot file
  3. Make closing proccess atfer closing .bat file
- 4. Connect sqlite db to discord bot
-ANOTHER TASKS IN discord_main.py
