@@ -8,21 +8,25 @@
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
 #3. повідомлення в конкретний канал
-#6. /команду help DONE
-#7. очистка БД (тільки адміністратором по ролі) !!! DONE
-#9. робити зсув message_id при видаленні/очистці БД
-#10. /get_latest - найостанніше повідомлення від користувача NEED FIX BY USER_NAME
-#11. читання rss з сайта і відсилання в діскорд
 #12. голосовуха
 #13. закриття бд
-#14. колонку в БД з назвою сервера звідки прийшло повідомлення
 #15. exception with connection to discord
 #16. send command
 #17. exception with command like "error command not found"
 #18. глянути візуально на все що вміє бот, щось додумати ще
-#19. навчитись форматувати вивід
+# send & markdown
+# java програмку візуальну для налаштування конфіг файлу
+# людський експорт в XLSX !!!
+# RSS (Arma 3)
+# ban command & banlist
+# команда для виключення бота
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
+# find hosting for bot
+# all permissions in code NOT IN INVITE
+# парсинг строки в команді get_latest
+# xlsx нормальне форматування файлу, бо це фігня якась
+# якщо немає БД - команду на створення з усіма відповідними колонками
 
 import discord
 
@@ -35,7 +39,7 @@ import os
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
-Commands = ["/clear_db", "/help", "/fascist", "/get_latest", "/get_data"]
+Commands = ["/clear_db", "/help", "/fascist", "/get_latest", "/get_messages"]
 
 # connecting to database
 try:
@@ -64,9 +68,8 @@ async def on_ready():
     try:
         print('We have logged in as {0.user}\n'.format(bot))
         #getting channel by id (using development mod in discord)
-        channel = bot.get_channel(settings['TEST_CHANNEL'])
-        #channel = bot.get_channel(settings['чат'])
-        await channel.send(f'Ready to engage')
+        #channel = bot.get_channel(settings['TEST_CHANNEL'])
+        #await channel.send(f'Ready to engage')
     except:
         print("Error with logging")
 
@@ -88,6 +91,7 @@ async def clear_db(ctx):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def get_latest(ctx):
+    # REWRITE THIS
     user_id_text = str(ctx.message.author);
 
     cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
@@ -95,52 +99,57 @@ async def get_latest(ctx):
     sqlite_connection.commit()
     result = cursor.fetchone();
 
-    # getting user_id
+    # getting user_id and separating it from list
     user_id_text = result[1]
     result_list = list(result)
     result_list.pop(1)
 
     # output
-    print("Latest message of", user_id_text,":")
-    print("Message id:", *result_list, sep = " | ")
-
+    print("Latest message of",user_id_text)
+    print(*result_list, "\n", sep = " | ",)
 
 #get xlsx file
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def get_data(ctx):
+async def get_messages(ctx):
     # ======xlsx test============
     # create a workbook and add a worksheet.
     workbook = xlsxwriter.Workbook('export/test.xlsx')
     worksheet = workbook.add_worksheet()
 
-    # data which we want to write to the worksheet
-    expenses = (
-        ['Rent', 1000],
-        ['Gas', 100],
-        ['Food', 300],
-        ['Gym', 50],
-    )
-    data = cursor.execute('SELECT user_id, message_text, message_date '
-                   'FROM users_messages '
-                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "{user_id_text}"))')
-    print(data)
+    cursor.execute('SELECT * '
+                   'FROM users_messages')
+    messages = cursor.fetchall()
+
     # Start from the first cell. Rows and columns are zero indexed.
     row = 0
     col = 0
 
+    # Names for columns
+    worksheet.write(row, col, "message_id")
+    worksheet.write(row, col + 1, "user_id")
+    worksheet.write(row, col + 2, "message_text")
+    worksheet.write(row, col + 3, "message_date")
+    worksheet.write(row, col + 4, "server_name")
+    row+=1
+
     # Iterate over the data and write it out row by row.
-    for item, cost in (expenses):
-        worksheet.write(row, col, item)
-        worksheet.write(row, col + 1, cost)
+    for message_id, user_id, message_text, message_date, server_name in (messages):
+        worksheet.write(row, col, message_id)
+        worksheet.write(row, col + 1, user_id)
+        worksheet.write(row, col + 2, message_text)
+        worksheet.write(row, col + 3, message_date)
+        worksheet.write(row, col + 4, server_name)
         row += 1
 
     # Write a total using a formula.
-    worksheet.write(row, 0, 'Total')
-    worksheet.write(row, 1, '=SUM(B1:B4)')
-
+    # worksheet.write(row, 0, 'Total')
+    # worksheet.write(row, 1, '=SUM(B1:B4)')
     workbook.close()
+
     await ctx.send(file=discord.File(r'export/test.xlsx'))
+    print("XSLX file sended.\n")
+
 #=====================commands for all users==============================
 
 #context or ctx - channel in which command (help) was writed
@@ -171,7 +180,7 @@ async def server(ctx):
 async def on_message(message):
     await bot.process_commands(message)
 
-    # insert message to DB if it isnt bot's message and not "/clear_db" command
+    # insert message to DB if it isnt bot's message and not command
     if (message.content not in Commands) and (message.author != bot.user):
         cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
                        (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
