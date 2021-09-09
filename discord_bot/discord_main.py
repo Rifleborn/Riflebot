@@ -20,6 +20,7 @@
 #16. send command
 #17. exception with command like "error command not found"
 #18. глянути візуально на все що вміє бот, щось додумати ще
+#19. навчитись форматувати вивід
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 
@@ -34,7 +35,7 @@ import os
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
-Commands = ["/clear_db", "/help", "/fascist", "/get_latest_message"]
+Commands = ["/clear_db", "/help", "/fascist", "/get_latest", "/get_data"]
 
 # connecting to database
 try:
@@ -56,40 +57,6 @@ except sqlite3.Error as error:
 #         sqlite_connection.close()
 #         print("Connection with SQLite closed")
 
-<<<<<<< HEAD
-=======
-#======xlsx test============
-#
-# create a workbook and add a worksheet.
-workbook = xlsxwriter.Workbook('export/test.xlsx')
-worksheet = workbook.add_worksheet()
-
-# data which we want to write to the worksheet
-users_messages_array = (
-    ['user_id1', 'message_text1', 'message_date1', 'server_name1'],
-    ['user_id2', 'message_text2', 'message_date2', 'server_name2'],
-    ['user_id3', 'message_text3', 'message_date3', 'server_name3'],
-    ['user_id4', 'message_text4', 'message_date4', 'server_name4'],
-)
-
-# Start from the first cell. Rows and columns are zero indexed.
-row = 0
-col = 0
-
-# Iterate over the data and write it out row by row.
-for id, text, date, server in (users_messages_array):
-    worksheet.write(row, col,     item)
-    worksheet.write(row, col + 1, cost)
-    row += 1
-
-# Write a total using a formula. DON'T NEED IT
-# worksheet.write(row, 0, 'Total')
-# worksheet.write(row, 1, '=SUM(B1:B4)')
-
-workbook.close()
-
-
->>>>>>> d572bad0dfefe26bf53b799b76c925b9a6b2d3df
 #========================================================================================
 #event when bot is online
 @bot.event
@@ -121,14 +88,22 @@ async def clear_db(ctx):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def get_latest(ctx):
-    user_id_text = ctx.message.author.name;
-    cursor.execute('SELECT user_id, message_text, message_date '
-                   'FROM users_messages '
-                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "{user_id_text}"))')
-    #print("===Last message of user ", user_id_text)
-    for row in cursor:
-        print(row)
+    user_id_text = str(ctx.message.author);
+
+    cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
+                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "' + user_id_text + '"))')
     sqlite_connection.commit()
+    result = cursor.fetchone();
+
+    # getting user_id
+    user_id_text = result[1]
+    result_list = list(result)
+    result_list.pop(1)
+
+    # output
+    print("Latest message of", user_id_text,":")
+    print("Message id:", *result_list, sep = " | ")
+
 
 #get xlsx file
 @bot.command()
@@ -146,7 +121,10 @@ async def get_data(ctx):
         ['Food', 300],
         ['Gym', 50],
     )
-
+    data = cursor.execute('SELECT user_id, message_text, message_date '
+                   'FROM users_messages '
+                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "{user_id_text}"))')
+    print(data)
     # Start from the first cell. Rows and columns are zero indexed.
     row = 0
     col = 0
@@ -194,7 +172,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
     # insert message to DB if it isnt bot's message and not "/clear_db" command
-    if (message.content != "/clear_db") and (message.author != bot.user):
+    if (message.content not in Commands) and (message.author != bot.user):
         cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
                        (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
         sqlite_connection.commit()
