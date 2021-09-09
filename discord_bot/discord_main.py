@@ -63,11 +63,11 @@ workbook = xlsxwriter.Workbook('export/test.xlsx')
 worksheet = workbook.add_worksheet()
 
 # data which we want to write to the worksheet
-expenses = (
-    ['Rent', 1000],
-    ['Gas',   100],
-    ['Food',  300],
-    ['Gym',    50],
+users_messages_array = (
+    ['user_id1', 'message_text1', 'message_date1', 'server_name1'],
+    ['user_id2', 'message_text2', 'message_date2', 'server_name2'],
+    ['user_id3', 'message_text3', 'message_date3', 'server_name3'],
+    ['user_id4', 'message_text4', 'message_date4', 'server_name4'],
 )
 
 # Start from the first cell. Rows and columns are zero indexed.
@@ -75,14 +75,14 @@ row = 0
 col = 0
 
 # Iterate over the data and write it out row by row.
-for item, cost in (expenses):
+for id, text, date, server in (users_messages_array):
     worksheet.write(row, col,     item)
     worksheet.write(row, col + 1, cost)
     row += 1
 
-# Write a total using a formula.
-worksheet.write(row, 0, 'Total')
-worksheet.write(row, 1, '=SUM(B1:B4)')
+# Write a total using a formula. DON'T NEED IT
+# worksheet.write(row, 0, 'Total')
+# worksheet.write(row, 1, '=SUM(B1:B4)')
 
 workbook.close()
 
