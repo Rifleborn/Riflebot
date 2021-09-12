@@ -1,5 +1,4 @@
-#==================VER 0.0.2===================
-# ctrl + /
+#==================VER 0.0.3===================
 # Project on discord API #Author: Rifleborn
 # Python (discord.py, XLSX, sqlite3), SQL, Markdown
 # XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
@@ -7,34 +6,41 @@
 
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
-#3. повідомлення в конкретний канал
 #12. голосовуха
-#13. закриття бд
 #15. exception with connection to discord
-#16. send command
 #17. exception with command like "error command not found"
 #18. глянути візуально на все що вміє бот, щось додумати ще
-# send & markdown
+
 # java програмку візуальну для налаштування конфіг файлу
-# людський експорт в XLSX !!!
 # RSS (Arma 3)
 # ban command & banlist
-# команда для виключення бота
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 # find hosting for bot
 # all permissions in code NOT IN INVITE
 # парсинг строки в команді get_latest
-# xlsx нормальне форматування файлу, бо це фігня якась
 # якщо немає БД - команду на створення з усіма відповідними колонками
-
+# get_message нік/дата
+# пропрацювати над виключеннями
+# - в день 1-3 завдання
+# ctx and username combination: async def kick(ctx, userName: discord.User):
+# Кастомну роль боту в методі on_guild_join
+# написати гру з ботом користувачем: бот створює чат для гри, користувачі мають команди які працюють тільки в цьому чаті,
+# ГОЛОСОВІ ПОВІДОМЛЕННЯ
+# Ignoring exception in command None:
+# discord.ext.commands.errors.CommandNotFound: Command "shudown" is not found
+# вивід всіх повідомлень користувача через get_messages 'nick'
+# get_ban_data 'nick'
+# ban 'nick' 'reason'
+# get_all_messages
+# METHOD FOR WORKBOOK STYLING
 import discord
 
 from config import settings
 from discord.ext import commands
-from discord.utils import find
 import xlsxwriter
 import sqlite3
+
 import os
 
 #command prefix (was chosen acording to other bots prefix on server)
@@ -56,12 +62,14 @@ try:
 except sqlite3.Error as error:
     print("Error with connection to sqlite", error)
 
-# finally:
-#     if (sqlite_connection):
-#         sqlite_connection.close()
-#         print("Connection with SQLite closed")
+#event when bot joined guild
+@bot.event
+async def on_guild_join(guild):
+    for channel in guild.text_channels:
+        if channel.permissions_for(guild.me).send_messages:
+            await channel.send('Hey there! this is the message i send when i join a server')
+        break
 
-#========================================================================================
 #event when bot is online
 @bot.event
 async def on_ready():
@@ -73,102 +81,203 @@ async def on_ready():
     except:
         print("Error with logging")
 
-#==========commands (consist of def(async), and sending some info, media etc.============
-#==========admin commands===========
+#========================commands (consist of def(async)=========================
+#admin/owner commands
+@bot.command()
+async def shutdown(ctx):
+    # @commands.is_owner()
+    if ctx.message.author.guild_permissions.administrator:
+        try:
+            if (sqlite_connection):
+                sqlite_connection.close()
+                print("--Connection with SQLite closed--")
+
+            try:
+                await ctx.bot.logout()
+                print("--Bot disabled--")
+            except RuntimeError:
+                print("--Event loop is closed")
+        except sqlite3.Error:
+            print("!-Shutdown error-!")
+    else:
+        print("---User have no permissions---")
 
 @bot.command()
-@commands.has_permissions(administrator=True)
+async def ban(ctx):
+    #    async def kick(ctx, userName: discord.User):
+    if ctx.message.author.guild_permissions.administrator:
+        print("banned test")
+    else:
+        print("--User have no permissions for ban--")
+
+@bot.command()
 async def clear_db(ctx):
-    # WHERE message_id > 0
-    cursor.execute('DELETE FROM users_messages')
-    # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
-    tableName = "users_messages";
-    cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + tableName + "'");
-    sqlite_connection.commit()
-    await ctx.send("Database cleared")
-    print("Database cleared\n")
+    # equialent of @commands.has_permissions(administrator=True)
+    if ctx.message.author.guild_permissions.administrator:
+        # WHERE message_id > 0
+        cursor.execute('DELETE FROM users_messages')
+        # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
+        tableName = "users_messages";
+        cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + tableName + "'");
+        sqlite_connection.commit()
+        await ctx.send("Database cleared")
+        print("Database cleared\n")
+    else:
+        print("---User have no permissions---")
 
+#get_latest user message
 @bot.command()
-@commands.has_permissions(administrator=True)
-async def get_latest(ctx):
-    # REWRITE THIS
-    user_id_text = str(ctx.message.author);
+async def get_latest(ctx, user_tag: str):
+    # ctx and username combination: async def kick(ctx, userName: discord.User):
+    # equialent of @commands.has_permissions(administrator=True)
+    if ctx.message.author.guild_permissions.administrator:
 
-    cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
-                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "' + user_id_text + '"))')
-    sqlite_connection.commit()
-    result = cursor.fetchone();
+        cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
+                   'WHERE ((message_id = (SELECT MAX(message_id) FROM users_messages)) and (user_id = "' + str(user_tag) + '"))')
+        sqlite_connection.commit()
+        result = cursor.fetchone();
 
-    # getting user_id and separating it from list
-    user_id_text = result[1]
-    result_list = list(result)
-    result_list.pop(1)
+        await ctx.send("Database cleared")
+        # getting user_id and separating it from list
+        user_id_text = result[1]
+        result_list = list(result)
+        result_list.pop(1)
 
-    # output
-    print("Latest message of",user_id_text)
-    print(*result_list, "\n", sep = " | ",)
+        #output
+        print("Latest message of ",user_id_text)
+        print(*result_list, "\n", sep = " | ",)
+    else:
+        print("---User have no permissions---")
+
+#get all user messages
+@bot.command()
+async def get_messages(ctx, user_tag: str):
+    # ctx and username combination: async def kick(ctx, userName: discord.User):
+    # equialent of @commands.has_permissions(administrator=True)
+    if ctx.message.author.guild_permissions.administrator:
+
+        # REWRITE THIS
+        cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
+                   'WHERE user_id = "' + str(user_tag) + '"')
+        sqlite_connection.commit()
+        user_messages = cursor.fetchall();
+
+    #================================XLSX=========================================
+        # create a workbook and add a worksheet.
+        workbook = xlsxwriter.Workbook('export/'+user_tag+'.xlsx')
+        worksheet = workbook.add_worksheet()
+
+        # style for cells
+        data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
+        column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
+
+        # Start from the first cell. Rows and columns are zero indexed.
+        row = 0
+        col = 0
+
+        # Resize columns
+        worksheet.set_column(0, 4, 24)
+
+        # Names for columns
+        worksheet.write(row, col, "message_id", column_name_cell)
+        worksheet.write(row, col + 1, "user_id", column_name_cell)
+        worksheet.write(row, col + 2, "message_text", column_name_cell)
+        worksheet.write(row, col + 3, "message_date", column_name_cell)
+        worksheet.write(row, col + 4, "server_name", column_name_cell)
+        row += 1
+
+        # Iterate over the data and write it out row by row.
+        for message_id, user_id, message_text, message_date, server_name in (user_messages):
+            worksheet.write(row, col, message_id, data_cell)
+            worksheet.write(row, col + 1, user_id, data_cell)
+            worksheet.write(row, col + 2, message_text, data_cell)
+            worksheet.write(row, col + 3, message_date, data_cell)
+            worksheet.write(row, col + 4, server_name, data_cell)
+            row += 1
+
+        workbook.close()
+
+        await ctx.send(file=discord.File(r'export/'+user_tag+'.xlsx'))
+        print("XSLX file of user messages sended.\n")
+    #==================================================================================
+
+        # getting user_id and separating it from list
+        user_id_text = user_messages[1]
+        result_list = list(user_messages)
+        result_list.pop(1)
+
+        #output
+        print("All messages by ",user_id_text)
+        print(*result_list, "\n", sep = " | ",)
+    else:
+        print("---User have no permissions---")
 
 #get xlsx file
 @bot.command()
-@commands.has_permissions(administrator=True)
-async def get_messages(ctx):
-    # ======xlsx test============
-    # create a workbook and add a worksheet.
-    workbook = xlsxwriter.Workbook('export/test.xlsx')
-    worksheet = workbook.add_worksheet()
+async def get_all(ctx):
+    if ctx.message.author.guild_permissions.administrator:
+        # create a workbook and add a worksheet.
+        workbook = xlsxwriter.Workbook('export/test.xlsx')
+        worksheet = workbook.add_worksheet()
 
-    cursor.execute('SELECT * '
-                   'FROM users_messages')
-    messages = cursor.fetchall()
+        # style for cells
+        data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
+        column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
 
-    # Start from the first cell. Rows and columns are zero indexed.
-    row = 0
-    col = 0
+        cursor.execute('SELECT * '
+                       'FROM users_messages')
+        messages = cursor.fetchall()
 
-    # Names for columns
-    worksheet.write(row, col, "message_id")
-    worksheet.write(row, col + 1, "user_id")
-    worksheet.write(row, col + 2, "message_text")
-    worksheet.write(row, col + 3, "message_date")
-    worksheet.write(row, col + 4, "server_name")
-    row+=1
+        # Start from the first cell. Rows and columns are zero indexed.
+        row = 0
+        col = 0
 
-    # Iterate over the data and write it out row by row.
-    for message_id, user_id, message_text, message_date, server_name in (messages):
-        worksheet.write(row, col, message_id)
-        worksheet.write(row, col + 1, user_id)
-        worksheet.write(row, col + 2, message_text)
-        worksheet.write(row, col + 3, message_date)
-        worksheet.write(row, col + 4, server_name)
-        row += 1
+        # Resize columns
+        worksheet.set_column(0, 4, 24)
 
-    # Write a total using a formula.
-    # worksheet.write(row, 0, 'Total')
-    # worksheet.write(row, 1, '=SUM(B1:B4)')
-    workbook.close()
+        # Names for columns
+        worksheet.write(row, col, "message_id", column_name_cell)
+        worksheet.write(row, col + 1, "user_id", column_name_cell)
+        worksheet.write(row, col + 2, "message_text", column_name_cell)
+        worksheet.write(row, col + 3, "message_date", column_name_cell)
+        worksheet.write(row, col + 4, "server_name", column_name_cell)
+        row+=1
 
-    await ctx.send(file=discord.File(r'export/test.xlsx'))
-    print("XSLX file sended.\n")
+        # Iterate over the data and write it out row by row.
+        for message_id, user_id, message_text, message_date, server_name in (messages):
+            worksheet.write(row, col, message_id, data_cell)
+            worksheet.write(row, col + 1, user_id, data_cell)
+            worksheet.write(row, col + 2, message_text, data_cell)
+            worksheet.write(row, col + 3, message_date, data_cell)
+            worksheet.write(row, col + 4, server_name, data_cell)
+            row += 1
+
+        workbook.close()
+
+        await ctx.send(file=discord.File(r'export/test.xlsx'))
+        print("XSLX file sended.\n")
+    else:
+        print("---User have no permissions---")
 
 #=====================commands for all users==============================
-
 #context or ctx - channel in which command (help) was writed
 
 #custom help command
 @bot.command()
 async def help(ctx):
-    #printing command list with sep
-    commands_list = " "
-    await ctx.send("```Custom help command```")
-    await ctx.send(commands_list.join(Commands))
+    #printing command list
+    await ctx.send("```Available commands '/'```")
+    helptext = "```"
+    for command in bot.commands:
+        helptext+=f"{command}\n"
+    helptext+="```"
+    await ctx.send(helptext)
 
 #test emoji command
 @bot.command()
-async def ss(ctx):
-    emoji = discord.utils.get(bot.emojis, name=':police:')
-    await ctx.send(str(emoji))
+async def test(ctx):
     await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
-    await ctx.send('<:police:>')
+
 
 #test command to get Guild(Server) name
 @bot.command()
@@ -182,13 +291,16 @@ async def on_message(message):
 
     # insert message to DB if it isnt bot's message and not command
     if (message.content not in Commands) and (message.author != bot.user):
-        cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
-                       (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
-        sqlite_connection.commit()
-        # debug
-        print(f'User ID: {message.author}\nMessage: {message.content}\n'
-              f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
-              f'Server: {message.guild.name}\n')
+        try:
+            cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
+                           (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
+            sqlite_connection.commit()
+            # debug
+            print(f'User ID(tag): {message.author}\nMessage: {message.content}\n'
+                  f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
+                  f'Server: {message.guild.name}\n')
+        except sqlite3.Error:
+            print("---command/message was not writted, DB was closed before---")
 
     # start for checking player commands
     if message.content.startswith('/'):
@@ -203,6 +315,7 @@ async def on_message(message):
 
         if message.content.startswith('/emoji'):
             await message.channel.send("<:police:884470225452560445>")
+
             #await message.channel.send(str(bot.get_emoji('884474673151221772')))
             #await message.channel.send("<:up10:12345>")
 
@@ -210,8 +323,12 @@ async def on_message(message):
 #launch
 bot.run(settings['TOKEN'])
 
-#async def emoji_url(ctx):
-#    await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
+# NOT DELETE THIS
+# auto - role
+# @Client.event
+# async def on_member_join(member):
+#     role = discord.utils.get(member.guild.roles, name='Unverified')
+#     await member.add_roles(role)
 
 
 
