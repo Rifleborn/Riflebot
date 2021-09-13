@@ -150,19 +150,26 @@ async def ban(ctx):
         print("--User have no permissions for ban--")
 
 @bot.command()
-async def clear_db(ctx):
+async def clear_db(ctx, table_name: str):
     # equialent of @commands.has_permissions(administrator=True)
     if ctx.message.author.guild_permissions.administrator:
-        # WHERE message_id > 0
-        cursor.execute('DELETE FROM users_messages')
-        # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
-        tableName = "users_messages";
-        cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + tableName + "'");
-        sqlite_connection.commit()
-        await ctx.send("Database cleared")
-        print("Database cleared\n")
+        if table_name == "banned_users" or table_name == "users_messages":
+            clear_db_def(table_name)
+        elif table_name == "all":
+            clear_db_def("banned_users")
+            clear_db_def("users_messages")
+        else:
+            await ctx.send("Wrong table name")
     else:
         print("---User have no permissions---")
+
+    async def clear_db_def(table_name):
+        cursor.execute('DELETE FROM "'+table_name+'"')
+        # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
+        cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + table_name + "'");
+        sqlite_connection.commit()
+        await ctx.send("Table", table_name, "cleared")
+        print("Database cleared\n")
 
 #get_latest user message
 @bot.command()
