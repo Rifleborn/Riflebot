@@ -62,6 +62,48 @@ try:
 except sqlite3.Error as error:
     print("Error with connection to sqlite", error)
 
+#see why not async
+def export_xlsx(file_name, list_of_messages, ctx):
+    #workbook(see on XLSX doc's)
+    #================================XLSX=========================================
+    # create a workbook and add a worksheet.
+    workbook = xlsxwriter.Workbook('export/' + file_name + '.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    # style for cells
+    data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
+    column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
+
+    # Start from the first cell. Rows and columns are zero indexed.
+    row = 0
+    col = 0
+
+    # Resize columns
+    worksheet.set_column(0, 4, 24)
+
+    # Names for columns
+    worksheet.write(row, col, "message_id", column_name_cell)
+    worksheet.write(row, col + 1, "user_id", column_name_cell)
+    worksheet.write(row, col + 2, "message_text", column_name_cell)
+    worksheet.write(row, col + 3, "message_date", column_name_cell)
+    worksheet.write(row, col + 4, "server_name", column_name_cell)
+    row += 1
+
+    # Iterate over the data and write it out row by row.
+    for message_id, user_id, message_text, message_date, server_name in (list_of_messages):
+        worksheet.write(row, col, message_id, data_cell)
+        worksheet.write(row, col + 1, user_id, data_cell)
+        worksheet.write(row, col + 2, message_text, data_cell)
+        worksheet.write(row, col + 3, message_date, data_cell)
+        worksheet.write(row, col + 4, server_name, data_cell)
+        row += 1
+
+    workbook.close()
+
+    ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
+    print("XSLX file of user messages sended.\n")
+    print('test')
+
 #event when bot joined guild
 @bot.event
 async def on_guild_join(guild):
@@ -154,6 +196,7 @@ async def get_latest(ctx, user_tag: str):
 async def get_messages(ctx, user_tag: str):
     # ctx and username combination: async def kick(ctx, userName: discord.User):
     # equialent of @commands.has_permissions(administrator=True)
+    print("/get_messages, user_tag:", user_tag)
     if ctx.message.author.guild_permissions.administrator:
 
         # REWRITE THIS
@@ -163,42 +206,43 @@ async def get_messages(ctx, user_tag: str):
         user_messages = cursor.fetchall();
 
     #================================XLSX=========================================
-        # create a workbook and add a worksheet.
-        workbook = xlsxwriter.Workbook('export/'+user_tag+'.xlsx')
-        worksheet = workbook.add_worksheet()
-
-        # style for cells
-        data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
-        column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
-
-        # Start from the first cell. Rows and columns are zero indexed.
-        row = 0
-        col = 0
-
-        # Resize columns
-        worksheet.set_column(0, 4, 24)
-
-        # Names for columns
-        worksheet.write(row, col, "message_id", column_name_cell)
-        worksheet.write(row, col + 1, "user_id", column_name_cell)
-        worksheet.write(row, col + 2, "message_text", column_name_cell)
-        worksheet.write(row, col + 3, "message_date", column_name_cell)
-        worksheet.write(row, col + 4, "server_name", column_name_cell)
-        row += 1
-
-        # Iterate over the data and write it out row by row.
-        for message_id, user_id, message_text, message_date, server_name in (user_messages):
-            worksheet.write(row, col, message_id, data_cell)
-            worksheet.write(row, col + 1, user_id, data_cell)
-            worksheet.write(row, col + 2, message_text, data_cell)
-            worksheet.write(row, col + 3, message_date, data_cell)
-            worksheet.write(row, col + 4, server_name, data_cell)
-            row += 1
-
-        workbook.close()
-
-        await ctx.send(file=discord.File(r'export/'+user_tag+'.xlsx'))
-        print("XSLX file of user messages sended.\n")
+        export_xlsx(user_messages,user_tag,ctx)
+        # # create a workbook and add a worksheet.
+        # workbook = xlsxwriter.Workbook('export/'+user_tag+'.xlsx')
+        # worksheet = workbook.add_worksheet()
+        #
+        # # style for cells
+        # data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
+        # column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
+        #
+        # # Start from the first cell. Rows and columns are zero indexed.
+        # row = 0
+        # col = 0
+        #
+        # # Resize columns
+        # worksheet.set_column(0, 4, 24)
+        #
+        # # Names for columns
+        # worksheet.write(row, col, "message_id", column_name_cell)
+        # worksheet.write(row, col + 1, "user_id", column_name_cell)
+        # worksheet.write(row, col + 2, "message_text", column_name_cell)
+        # worksheet.write(row, col + 3, "message_date", column_name_cell)
+        # worksheet.write(row, col + 4, "server_name", column_name_cell)
+        # row += 1
+        #
+        # # Iterate over the data and write it out row by row.
+        # for message_id, user_id, message_text, message_date, server_name in (user_messages):
+        #     worksheet.write(row, col, message_id, data_cell)
+        #     worksheet.write(row, col + 1, user_id, data_cell)
+        #     worksheet.write(row, col + 2, message_text, data_cell)
+        #     worksheet.write(row, col + 3, message_date, data_cell)
+        #     worksheet.write(row, col + 4, server_name, data_cell)
+        #     row += 1
+        #
+        # workbook.close()
+        #
+        # await ctx.send(file=discord.File(r'export/'+user_tag+'.xlsx'))
+        # print("XSLX file of user messages sended.\n")
     #==================================================================================
 
         # getting user_id and separating it from list
@@ -207,8 +251,7 @@ async def get_messages(ctx, user_tag: str):
         result_list.pop(1)
 
         #output
-        print("All messages by ",user_id_text)
-        print(*result_list, "\n", sep = " | ",)
+        print("--All messages by ",user_id_text, "sended in XLSX file--")
     else:
         print("---User have no permissions---")
 
