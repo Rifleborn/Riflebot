@@ -33,7 +33,7 @@
 # get_ban_data 'nick'
 # ban 'nick' 'reason'
 # get_all_messages
-# METHOD FOR WORKBOOK STYLING
+
 import discord
 
 from config import settings
@@ -63,7 +63,7 @@ except sqlite3.Error as error:
     print("Error with connection to sqlite", error)
 
 #see why not async
-def export_xlsx(file_name, list_of_messages, ctx):
+async def export_xlsx(list_of_messages, file_name, ctx):
     #workbook(see on XLSX doc's)
     #================================XLSX=========================================
     # create a workbook and add a worksheet.
@@ -99,10 +99,7 @@ def export_xlsx(file_name, list_of_messages, ctx):
         row += 1
 
     workbook.close()
-
-    ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
-    print("XSLX file of user messages sended.\n")
-    print('test')
+    await ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
 
 #event when bot joined guild
 @bot.event
@@ -194,7 +191,6 @@ async def get_latest(ctx, user_tag: str):
 #get all user messages
 @bot.command()
 async def get_messages(ctx, user_tag: str):
-    # ctx and username combination: async def kick(ctx, userName: discord.User):
     # equialent of @commands.has_permissions(administrator=True)
     print("/get_messages, user_tag:", user_tag)
     if ctx.message.author.guild_permissions.administrator:
@@ -205,102 +201,31 @@ async def get_messages(ctx, user_tag: str):
         sqlite_connection.commit()
         user_messages = cursor.fetchall();
 
-    #================================XLSX=========================================
-        export_xlsx(user_messages,user_tag,ctx)
-        # # create a workbook and add a worksheet.
-        # workbook = xlsxwriter.Workbook('export/'+user_tag+'.xlsx')
-        # worksheet = workbook.add_worksheet()
-        #
-        # # style for cells
-        # data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
-        # column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
-        #
-        # # Start from the first cell. Rows and columns are zero indexed.
-        # row = 0
-        # col = 0
-        #
-        # # Resize columns
-        # worksheet.set_column(0, 4, 24)
-        #
-        # # Names for columns
-        # worksheet.write(row, col, "message_id", column_name_cell)
-        # worksheet.write(row, col + 1, "user_id", column_name_cell)
-        # worksheet.write(row, col + 2, "message_text", column_name_cell)
-        # worksheet.write(row, col + 3, "message_date", column_name_cell)
-        # worksheet.write(row, col + 4, "server_name", column_name_cell)
-        # row += 1
-        #
-        # # Iterate over the data and write it out row by row.
-        # for message_id, user_id, message_text, message_date, server_name in (user_messages):
-        #     worksheet.write(row, col, message_id, data_cell)
-        #     worksheet.write(row, col + 1, user_id, data_cell)
-        #     worksheet.write(row, col + 2, message_text, data_cell)
-        #     worksheet.write(row, col + 3, message_date, data_cell)
-        #     worksheet.write(row, col + 4, server_name, data_cell)
-        #     row += 1
-        #
-        # workbook.close()
-        #
-        # await ctx.send(file=discord.File(r'export/'+user_tag+'.xlsx'))
-        # print("XSLX file of user messages sended.\n")
-    #==================================================================================
+        #getting xlsx file
+        await export_xlsx(user_messages,user_tag,ctx)
 
         # getting user_id and separating it from list
         user_id_text = user_messages[1]
         result_list = list(user_messages)
         result_list.pop(1)
-
-        #output
-        print("--All messages by ",user_id_text, "sended in XLSX file--")
+        print("--All messages by ",user_id_text, "sended in XLSX file--\n")
     else:
-        print("---User have no permissions---")
+        print("--User have no permissions--\n")
 
 #get xlsx file
 @bot.command()
 async def get_all(ctx):
     if ctx.message.author.guild_permissions.administrator:
-        # create a workbook and add a worksheet.
-        workbook = xlsxwriter.Workbook('export/test.xlsx')
-        worksheet = workbook.add_worksheet()
-
-        # style for cells
-        data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
-        column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
-
         cursor.execute('SELECT * '
                        'FROM users_messages')
+        sqlite_connection.commit()
         messages = cursor.fetchall()
 
-        # Start from the first cell. Rows and columns are zero indexed.
-        row = 0
-        col = 0
-
-        # Resize columns
-        worksheet.set_column(0, 4, 24)
-
-        # Names for columns
-        worksheet.write(row, col, "message_id", column_name_cell)
-        worksheet.write(row, col + 1, "user_id", column_name_cell)
-        worksheet.write(row, col + 2, "message_text", column_name_cell)
-        worksheet.write(row, col + 3, "message_date", column_name_cell)
-        worksheet.write(row, col + 4, "server_name", column_name_cell)
-        row+=1
-
-        # Iterate over the data and write it out row by row.
-        for message_id, user_id, message_text, message_date, server_name in (messages):
-            worksheet.write(row, col, message_id, data_cell)
-            worksheet.write(row, col + 1, user_id, data_cell)
-            worksheet.write(row, col + 2, message_text, data_cell)
-            worksheet.write(row, col + 3, message_date, data_cell)
-            worksheet.write(row, col + 4, server_name, data_cell)
-            row += 1
-
-        workbook.close()
-
-        await ctx.send(file=discord.File(r'export/test.xlsx'))
-        print("XSLX file sended.\n")
+        file_name = "all_messages"
+        await export_xlsx(messages, file_name, ctx)
+        print("--All messages sended--\n")
     else:
-        print("---User have no permissions---")
+        print("---User have no permissions---\n")
 
 #=====================commands for all users==============================
 #context or ctx - channel in which command (help) was writed
@@ -358,11 +283,7 @@ async def on_message(message):
 
         if message.content.startswith('/emoji'):
             await message.channel.send("<:police:884470225452560445>")
-
             #await message.channel.send(str(bot.get_emoji('884474673151221772')))
-            #await message.channel.send("<:up10:12345>")
-
-
 #launch
 bot.run(settings['TOKEN'])
 
