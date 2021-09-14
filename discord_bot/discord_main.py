@@ -20,7 +20,7 @@
 # all permissions in code NOT IN INVITE
 # парсинг строки в команді get_latest
 # якщо немає БД - команду на створення з усіма відповідними колонками
-# get_message нік/дата
+
 # пропрацювати над виключеннями
 # - в день 1-3 завдання
 # ctx and username combination: async def kick(ctx, userName: discord.User):
@@ -29,10 +29,9 @@
 # ГОЛОСОВІ ПОВІДОМЛЕННЯ
 # Ignoring exception in command None:
 # discord.ext.commands.errors.CommandNotFound: Command "shudown" is not found
-# вивід всіх повідомлень користувача через get_messages 'nick'
 # get_ban_data 'nick'
 # ban 'nick' 'reason'
-# get_all_messages
+# get_message нік/дата
 
 import discord
 
@@ -45,7 +44,7 @@ import os
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
-Commands = ["/clear_db", "/help", "/fascist", "/get_latest", "/get_messages"]
+Commands = ["/help", "/clear_db table_name", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
 
 # connecting to database
 try:
