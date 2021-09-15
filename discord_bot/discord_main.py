@@ -1,4 +1,4 @@
-#==================VER 0.0.3===================
+#==================VER 0.0.4===================
 # Project on discord API #Author: Rifleborn
 # Python (discord.py, XLSX, sqlite3), SQL, Markdown
 # XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
@@ -13,7 +13,6 @@
 
 # java програмку візуальну для налаштування конфіг файлу
 # RSS (Arma 3)
-# ban command & banlist
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 # find hosting for bot
@@ -29,6 +28,9 @@
 # ГОЛОСОВІ ПОВІДОМЛЕННЯ
 # Ignoring exception in command None:
 # discord.ext.commands.errors.CommandNotFound: Command "shudown" is not found
+
+#====working on====
+# ban command & banlist
 # get_ban_data 'nick'
 # ban 'nick' 'reason'
 # get_message нік/дата
@@ -128,7 +130,35 @@ async def on_ready():
         print("Error with logging")
 
 #========================commands (consist of def(async)=========================
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Please pass in all requirements :rolling_eyes:.')
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You dont have all the requirements :angry:")
+
 #admin/owner commands
+# command for banning users
+@client.command()
+@commands.has_permissions(administrator = True)
+async def ban(ctx, member: discord.Member, *, reason: str):
+    await member.ban(reason = reason)
+
+#The below code unbans player.
+@client.command()
+@commands.has_permissions(administrator = True)
+async def unban(ctx, *, member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split("#")
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+
+        if (user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'Unbanned {user.mention}')
+            return
+
 @bot.command()
 async def shutdown(ctx):
     # @commands.is_owner()
@@ -198,7 +228,6 @@ async def get_latest(ctx, user_tag: str):
 @bot.command()
 async def get_messages(ctx, user_tag: str):
     # equialent of @commands.has_permissions(administrator=True)
-    print("/get_messages, user_tag:", user_tag)
     if ctx.message.author.guild_permissions.administrator:
 
         # REWRITE THIS
@@ -215,6 +244,26 @@ async def get_messages(ctx, user_tag: str):
         result_list = list(user_messages)
         result_list.pop(1)
         print("--All messages by ",user_id_text, "sended in XLSX file--\n")
+    else:
+        print("--User have no permissions--\n")
+
+#get all user messages by data
+@bot.command()
+async def get_messages(ctx, user_tag: str, messageDate):
+    # equialent of @commands.has_permissions(administrator=True)
+    if ctx.message.author.guild_permissions.administrator:
+
+        # getting all messages by user tag and date
+        cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
+                       'WHERE ((message_date = "'+str(messageDate)+'")and (user_id = "' + str(user_tag) + '"))')
+        sqlite_connection.commit()
+        user_messages = cursor.fetchall();
+
+        #getting xlsx file
+        file_name = user_tag + " " + message_date
+        await export_xlsx(user_messages,file_name,ctx)
+
+        print("--All messages by ",user_tag, "|", message_date, "sended in XLSX file--\n")
     else:
         print("--User have no permissions--\n")
 
@@ -251,7 +300,6 @@ async def help(ctx):
 @bot.command()
 async def test(ctx):
     await ctx.send('https://cdn.discordapp.com/emojis/784455362140569610.png?size=64')
-
 
 #test command to get Guild(Server) name
 @bot.command()
