@@ -46,7 +46,8 @@ import os
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
-Commands = ["/help", "/clear_db table_name", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
+#not all list of commands (command /help show all actual commands)
+Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
 
 # connecting to database
 try:
@@ -66,8 +67,7 @@ except sqlite3.Error as error:
 #see why not async
 async def export_xlsx(list_of_messages, file_name, ctx):
     #workbook(see on XLSX doc's)
-    #================================XLSX=========================================
-    # create a workbook and add a worksheet.
+    # create a workbook and add a worksheet (XLSX).
     workbook = xlsxwriter.Workbook('export/' + file_name + '.xlsx')
     worksheet = workbook.add_worksheet()
 
@@ -102,6 +102,7 @@ async def export_xlsx(list_of_messages, file_name, ctx):
     workbook.close()
     await ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
 
+#def with clearing database tables
 async def clear_db_def(table_name, ctx):
     cursor.execute('DELETE FROM "' + table_name + '"')
     # UPDATE SQLITE_SEQUENCE SET user_id = 1 WHERE NAME = 'users_messages';
@@ -130,7 +131,8 @@ async def on_ready():
         print("Error with logging")
 
 #========================commands (consist of def(async)=========================
-@client.event
+# checking user's command
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Please pass in all requirements :rolling_eyes:.')
@@ -139,25 +141,27 @@ async def on_command_error(ctx, error):
 
 #admin/owner commands
 # command for banning users
-@client.command()
+@bot.command()
 @commands.has_permissions(administrator = True)
 async def ban(ctx, member: discord.Member, *, reason: str):
-    await member.ban(reason = reason)
+    if ctx.message.author.guild_permissions.administrator:
+        await member.ban(reason = reason)
 
 #The below code unbans player.
-@client.command()
+@bot.command()
 @commands.has_permissions(administrator = True)
 async def unban(ctx, *, member):
-    banned_users = await ctx.guild.bans()
-    member_name, member_discriminator = member.split("#")
+    if ctx.message.author.guild_permissions.administrator:
+        banned_users = await ctx.guild.bans()
+        member_name, member_discriminator = member.split("#")
 
-    for ban_entry in banned_users:
-        user = ban_entry.user
+        for ban_entry in banned_users:
+            user = ban_entry.user
 
-        if (user.name, user.discriminator) == (member_name, member_discriminator):
-            await ctx.guild.unban(user)
-            await ctx.send(f'Unbanned {user.mention}')
-            return
+            if (user.name, user.discriminator) == (member_name, member_discriminator):
+                await ctx.guild.unban(user)
+                await ctx.send(f'Unbanned {user.mention}')
+                return
 
 @bot.command()
 async def shutdown(ctx):
@@ -179,14 +183,6 @@ async def shutdown(ctx):
         print("---User have no permissions---")
 
 @bot.command()
-async def ban(ctx):
-    #    async def kick(ctx, userName: discord.User):
-    if ctx.message.author.guild_permissions.administrator:
-        print("banned test")
-    else:
-        print("--User have no permissions for ban--")
-
-@bot.command()
 async def clear_db(ctx, table_name: str):
     # equialent of @commands.has_permissions(administrator=True)
     if ctx.message.author.guild_permissions.administrator:
@@ -203,8 +199,6 @@ async def clear_db(ctx, table_name: str):
 #get_latest user message
 @bot.command()
 async def get_latest(ctx, user_tag: str):
-    # ctx and username combination: async def kick(ctx, userName: discord.User):
-    # equialent of @commands.has_permissions(administrator=True)
     if ctx.message.author.guild_permissions.administrator:
 
         cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
@@ -240,16 +234,13 @@ async def get_messages(ctx, user_tag: str):
         await export_xlsx(user_messages,user_tag,ctx)
 
         # getting user_id and separating it from list
-        user_id_text = user_messages[1]
-        result_list = list(user_messages)
-        result_list.pop(1)
-        print("--All messages by ",user_id_text, "sended in XLSX file--\n")
+        print("--All messages by", user_tag, "sended in XLSX file--\n")
     else:
         print("--User have no permissions--\n")
 
 #get all user messages by data
 @bot.command()
-async def get_messages(ctx, user_tag: str, messageDate):
+async def get_message_date(ctx, user_tag: str, messageDate: str):
     # equialent of @commands.has_permissions(administrator=True)
     if ctx.message.author.guild_permissions.administrator:
 
