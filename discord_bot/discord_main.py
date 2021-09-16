@@ -6,32 +6,29 @@
 
 #1. додати автовидачу ролі боту при доєднанні на сервер
 #2. зробити відправку повідомлення по таймінгу 14сек 88 мілісекунд (типу того)
-#12. голосовуха
-#15. exception with connection to discord
-#17. exception with command like "error command not found"
-#18. глянути візуально на все що вміє бот, щось додумати ще
+#3. exception with connection to discord
+#4. exception with command like "error command not found"
+#5. глянути візуально на все що вміє бот, щось додумати ще
 
 # java програмку візуальну для налаштування конфіг файлу
-# RSS (Arma 3)
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 # find hosting for bot
 # all permissions in code NOT IN INVITE
 
 # виключення
-# - в день 1-3 завдання
-# ctx and username combination: async def kick(ctx, userName: discord.User):
+# ctx and username combination: async def kick(ctx, userName: discord.User)
 # Кастомну роль боту в методі on_guild_join
 # написати гру з ботом користувачем: бот створює чат для гри, користувачі мають команди які працюють тільки в цьому чаті,
-# ГОЛОСОВІ ПОВІДОМЛЕННЯ
 # Ignoring exception in command None:
 # discord.ext.commands.errors.CommandNotFound: Command "shudown" is not found
 
 #====working on====
-# ban command & banlist
-# get_ban_data 'nick'
-# ban 'nick' 'reason'
-# get_message нік/дата
+# RSS
+# ban command & banlist table
+# get_ban_data 'nick' NEED TEST
+# ban 'nick' 'reason' NEED TEST
+# ГОЛОСОВІ ПОВІДОМЛЕННЯ
 # якщо немає БД - команду на створення з усіма відповідними колонками
 
 import discord
