@@ -17,10 +17,8 @@
 # aiohttp.client_exceptions.ClientConnectorError:
 # find hosting for bot
 # all permissions in code NOT IN INVITE
-# парсинг строки в команді get_latest
-# якщо немає БД - команду на створення з усіма відповідними колонками
 
-# пропрацювати над виключеннями
+# виключення
 # - в день 1-3 завдання
 # ctx and username combination: async def kick(ctx, userName: discord.User):
 # Кастомну роль боту в методі on_guild_join
@@ -34,6 +32,7 @@
 # get_ban_data 'nick'
 # ban 'nick' 'reason'
 # get_message нік/дата
+# якщо немає БД - команду на створення з усіма відповідними колонками
 
 import discord
 
