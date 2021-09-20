@@ -25,7 +25,6 @@
 
 #====working on====
 # RSS
-# ban command & banlist table
 # get_ban_data 'nick' NEED TEST
 # ban 'nick' 'reason' NEED TEST
 # ГОЛОСОВІ ПОВІДОМЛЕННЯ
@@ -298,10 +297,11 @@ async def get_all(ctx):
 @bot.command()
 async def help(ctx):
     #printing command list
-    await ctx.send("```Available commands '/'```")
+    await ctx.send("```Available commands```")
     helptext = "```"
+    text = func.__code__.co_varnames
     for command in bot.commands:
-        helptext+=f"{command}\n"
+        helptext+=f'/{command}  |  {text}\n'
     helptext+="```"
     await ctx.send(helptext)
 
