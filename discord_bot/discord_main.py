@@ -58,7 +58,25 @@ try:
     #cursor.close()
 
 except sqlite3.Error as error:
-    print("Error with connection to sqlite", error)
+    print("---Error with connection to sqlite---", error)
+    sqlite_connection = sqlite3.connect('users.db')
+    cursor = sqlite_connection.cursor()
+
+    # rewrite
+    sqlite_connection.execute('CREATE TABLE "users_messages" ('
+                              '"message_id"	INTEGER NOT NULL UNIQUE,'
+                              '"user_id"	TEXT,'
+                              '"message_text"	TEXT,'
+                              '"message_date"	TEXT,'
+                              '"server_name"	TEXT,'
+                              'PRIMARY KEY("message_id" AUTOINCREMENT));')
+    print("Database created and successfully connected to SQLite")
+
+    sqlite_select_query = "select sqlite_version();"
+    cursor.execute(sqlite_select_query)
+    record = cursor.fetchall()
+    print("Database version SQLite: ", record)
+    # cursor.close()
 
 #see why not async
 async def export_xlsx(list_of_messages, file_name, ctx):
@@ -239,18 +257,22 @@ async def get_messages(ctx, user_tag: str):
 async def get_message_date(ctx, user_tag: str, messageDate: str):
     # equialent of @commands.has_permissions(administrator=True)
     if ctx.message.author.guild_permissions.administrator:
-
+        print("DATE TEST: ", messageDate)
+        print("user tag test: ", user_tag)
         # getting all messages by user tag and date
-        cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
-                       'WHERE ((message_date = "'+str(messageDate)+'")and (user_id = "' + str(user_tag) + '"))')
-        sqlite_connection.commit()
-        user_messages = cursor.fetchall();
-
+        try:
+            cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
+                           'WHERE ((message_date like "'+messageDate+'") and (user_id = "' + str(user_tag) + '"))')
+                           #'WHERE ((CHARINDEX('+messageDate+', message_date) > 10)and (user_id = "' + str(user_tag) + '"))')
+            sqlite_connection.commit()
+            user_messages = cursor.fetchall();
+        except Exception:
+            print("CNAT LOAD THIS SHIT")
         #getting xlsx file
-        file_name = user_tag + " " + message_date
+        file_name = user_tag + " " + messageDate
         await export_xlsx(user_messages,file_name,ctx)
 
-        print("--All messages by ",user_tag, "|", message_date, "sended in XLSX file--\n")
+        print("--All messages by ",user_tag, "|", messageDate, "sended in XLSX file--\n")
     else:
         print("--User have no permissions--\n")
 
@@ -297,19 +319,22 @@ async def server(ctx):
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
-
     # insert message to DB if it isnt bot's message and not command
     if (message.content not in Commands) and (message.author != bot.user):
+        messageDate = str(message.created_at);
+        slice_object = slice(16)
+        messageDate = messageDate[slice_object]
+
         try:
             cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
-                           (str(message.author), str(message.content), str(message.created_at), str(message.guild.name)))
+                           (str(message.author), str(message.content), messageDate, str(message.guild.name)))
             sqlite_connection.commit()
             # debug
             print(f'User ID(tag): {message.author}\nMessage: {message.content}\n'
                   f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
                   f'Server: {message.guild.name}\n')
         except sqlite3.Error:
-            print("---command/message was not writted, DB was closed before---")
+            print("---Command/message was not writted---")
 
     # start for checking player commands
     if message.content.startswith('/'):
