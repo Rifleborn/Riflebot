@@ -1,6 +1,6 @@
 #==================VER 0.0.4===================
 # Project on discord API #Author: Rifleborn
-# Python (discord.py, XLSX, sqlite3), SQL, Markdown
+# Python (discord.py, XLSX, sqlite3, feedparser), SQL, Markdown
 # XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
 # XlsxWriter is a Python module for writing files in the Excel 2007+ XLSX file format.
 
@@ -31,14 +31,14 @@
 # якщо немає БД - команду на створення з усіма відповідними колонками
 # cursor.close()
 
-import discord
-import feedparser
 
 from config import settings
 from discord.ext import commands
+
+import discord
+import feedparser
 import xlsxwriter
 import sqlite3
-
 import os
 
 #command prefix (was chosen acording to other bots prefix on server)
@@ -47,7 +47,13 @@ bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_comma
 Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
 
 # RSS
-feed = feedparser.parse('https://arma3.com/rss')
+post = feedparser.parse('https://arma3.com/rss')
+
+print(post.feed.title)
+print(post.feed.link)
+print(post.feed.description)
+print(post.feed.published)
+print(post.feed.published_parsed)
 
 # connecting to database
 try:
