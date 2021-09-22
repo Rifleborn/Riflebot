@@ -14,7 +14,7 @@
 # ClientConnectorError(req.connection_key, exc) from exc
 # aiohttp.client_exceptions.ClientConnectorError:
 # find hosting for bot
-# all permissions in code NOT IN INVITE
+# all permissions in code, NOT BY INVITE
 
 # виключення
 # ctx and username combination: async def kick(ctx, userName: discord.User)
@@ -299,9 +299,8 @@ async def help(ctx):
     #printing command list
     await ctx.send("```Available commands```")
     helptext = "```"
-    text = func.__code__.co_varnames
     for command in bot.commands:
-        helptext+=f'/{command}  |  {text}\n'
+        helptext+=f'/{command}\n'
     helptext+="```"
     await ctx.send(helptext)
 
