@@ -29,8 +29,10 @@
 # ban 'nick' 'reason' NEED TEST
 # ГОЛОСОВІ ПОВІДОМЛЕННЯ
 # якщо немає БД - команду на створення з усіма відповідними колонками
+# cursor.close()
 
 import discord
+import feedparser
 
 from config import settings
 from discord.ext import commands
@@ -44,6 +46,9 @@ bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_comma
 #not all list of commands (command /help show all actual commands)
 Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
 
+# RSS
+feed = feedparser.parse('https://arma3.com/rss')
+
 # connecting to database
 try:
     sqlite_connection = sqlite3.connect('users.db')
@@ -54,7 +59,6 @@ try:
     cursor.execute(sqlite_select_query)
     record = cursor.fetchall()
     print("Database version SQLite: ", record)
-    #cursor.close()
 
 except sqlite3.Error as error:
     print("---Error with connection to sqlite---", error)
@@ -75,7 +79,6 @@ except sqlite3.Error as error:
     cursor.execute(sqlite_select_query)
     record = cursor.fetchall()
     print("Database version SQLite: ", record)
-    # cursor.close()
 
 #see why not async
 async def export_xlsx(list_of_messages, file_name, ctx):
@@ -183,6 +186,7 @@ async def shutdown(ctx):
         try:
             if (sqlite_connection):
                 sqlite_connection.close()
+                cursor.close()
                 print("--Connection with SQLite closed--")
 
             try:
