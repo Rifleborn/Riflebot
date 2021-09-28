@@ -31,6 +31,11 @@
 # якщо немає БД - команду на створення з усіма відповідними колонками
 # cursor.close()
 
+# The venv module provides support for creating lightweight “virtual environments”
+# with their own site directories, optionally isolated from system site directories.
+# Each virtual environment has its own Python binary
+# (which matches the version of the binary that was used to create this environment) and
+# can have its own independent set of installed Python packages in its site directories
 
 from config import settings
 from discord.ext import commands
@@ -66,25 +71,26 @@ try:
     record = cursor.fetchall()
     print("Database version SQLite: ", record)
 
+    # re-creating
+    # # rewrite
+    # print("--Trying to create DB--")
+    # sqlite_connection.execute('CREATE TABLE "users_messages" ('
+    #                           '"message_id"	INTEGER NOT NULL UNIQUE,'
+    #                           '"user_id"	TEXT,'
+    #                           '"message_text"	TEXT,'
+    #                           '"message_date"	TEXT,'
+    #                           '"server_name"	TEXT,'
+    #                           'PRIMARY KEY("message_id" AUTOINCREMENT));')
+    # print("Database created and successfully connected to SQLite")
+    #
+    # sqlite_select_query = "select sqlite_version();"
+    # cursor.execute(sqlite_select_query)
+    # record = cursor.fetchall()
+    # print("Database version SQLite: ", record)
+
 except sqlite3.Error as error:
     print("---Error with connection to sqlite---", error)
-    sqlite_connection = sqlite3.connect('users.db')
-    cursor = sqlite_connection.cursor()
-
-    # rewrite
-    sqlite_connection.execute('CREATE TABLE "users_messages" ('
-                              '"message_id"	INTEGER NOT NULL UNIQUE,'
-                              '"user_id"	TEXT,'
-                              '"message_text"	TEXT,'
-                              '"message_date"	TEXT,'
-                              '"server_name"	TEXT,'
-                              'PRIMARY KEY("message_id" AUTOINCREMENT));')
-    print("Database created and successfully connected to SQLite")
-
-    sqlite_select_query = "select sqlite_version();"
-    cursor.execute(sqlite_select_query)
-    record = cursor.fetchall()
-    print("Database version SQLite: ", record)
+    print(error)
 
 #see why not async
 async def export_xlsx(list_of_messages, file_name, ctx):
