@@ -146,7 +146,7 @@ async def on_guild_join(guild):
         if channel.permissions_for(guild.me).send_messages:
             await channel.send('Hey there! this is the message i send when i join a server')
         break
-
+int _you
 #event when bot is online
 @bot.event
 async def on_ready():
