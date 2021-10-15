@@ -1,6 +1,13 @@
-#==================VER 0.0.4===================
+#==================VER 0.0.5===================
 # Project on discord API #Author: Rifleborn
-# Python (discord.py, XLSX, sqlite3, feedparser), SQL, Markdown
+# Python (discord.py, XLSX, sqlite3, feedparser, request, BeatifulSoup), SQL, Markdown
+# BeautifulSoup - навігація по структурі отриманого HTML файлу
+# Request
+# XLSX - створення книги з потрібними даними для виводу
+# sqlite3 - БД
+# feedparser - парсинг сайта
+# discord.py - база
+# soupsieve - CSS selectors
 # XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
 # XlsxWriter is a Python module for writing files in the Excel 2007+ XLSX file format.
 
@@ -40,6 +47,7 @@ import feedparser
 import xlsxwriter
 import sqlite3
 import os
+from parsing import parse
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
@@ -47,13 +55,20 @@ bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_comma
 Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
 
 # RSS
-post = feedparser.parse('https://arma3.com/rss')
+#getting url from config.py
+post = feedparser.parse(settings['URL'])
 
 print(post.feed.title)
 print(post.feed.link)
 print(post.feed.description)
-print(post.feed.published)
-print(post.feed.published_parsed)
+print(post.feed.description)
+# print(post.feed.published)
+# print(post.feed.published_parsed)
+parse()
+
+
+#================
+
 
 # connecting to database
 try:
