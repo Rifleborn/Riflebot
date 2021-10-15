@@ -2,11 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 from config import settings
 
-# url from config.py
+# URL our site what we need to parse
 URL = settings['URL']
-# what is this
+# imitating browser work (not bot activity)
 HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0', 'accept': '*/*'}
-HOST = 'https://auto.ria.com'
+# host from site's URL
+HOST = settings['HOST']
 
 
 def get_html(url, params=None):
@@ -16,7 +17,7 @@ def get_html(url, params=None):
 
 def get_content(html):
     soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all('a', class_='na-card-item')
+    items = soup.find_all('a', class_=settings['CONTENT_CLASS'])
 
     cars = []
     for item in items:
@@ -43,4 +44,4 @@ def parse():
         print('Error')
 
 
-
+parse()

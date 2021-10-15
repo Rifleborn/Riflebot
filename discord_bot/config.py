@@ -4,5 +4,11 @@ settings = {
     #without ' ' because its channel id
     'TEST_CHANNEL' : 883369387439046676,
     'CHAT': 833613276356280321,
-    'URL': 'https://defence-ua.com/rss/feed.xml'
+
+    # parsing
+    'URL': 'https://auto.ria.com/newauto/marka-jeep/',
+    #'https://defence-ua.com/rss/feed.xml'
+    'CLASS_DIV': '',
+    'HOST': 'https://auto.ria.com',
+    'CONTENT-CLASS': 'na-card-item'
 }
