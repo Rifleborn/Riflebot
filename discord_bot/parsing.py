@@ -5,18 +5,19 @@ from config import settings
 # URL our site what we need to parse
 URL = settings['URL']
 # imitating browser work (not bot activity)
-HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0', 'accept': '*/*'}
+HEADERS = settings['HEADERS']
+print(HEADERS)
 # host from site's URL
 HOST = settings['HOST']
 
 
 def get_html(url, params=None):
-    r = requests.get(url, headers=HEADERS, params=params)
-    return r
-
+    req = requests.get(url, headers=HEADERS, params=params)
+    return req
 
 def get_content(html):
     soup = BeautifulSoup(html, 'html.parser')
+    #getting items of web-page
     items = soup.find_all('a', class_=settings['CONTENT_CLASS'])
 
     cars = []
@@ -39,9 +40,9 @@ def get_content(html):
 def parse():
     html = get_html(URL)
     if html.status_code == 200:
+        print(get_content(html.text))
         cars = get_content(html.text)
+        print(cars)
     else:
         print('Error')
 
-
-parse()

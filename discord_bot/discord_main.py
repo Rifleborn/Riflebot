@@ -25,7 +25,6 @@
 
 # виключення
 # ctx and username combination: async def kick(ctx, userName: discord.User)
-# Кастомну роль боту в методі on_guild_join
 # написати гру з ботом користувачем: бот створює чат для гри, користувачі мають команди які працюють тільки в цьому чаті,
 # Ignoring exception in command None:
 # discord.ext.commands.errors.CommandNotFound: Command "shudown" is not found
@@ -35,9 +34,10 @@
 # get_ban_data 'nick' NEED TEST
 # ban 'nick' 'reason' NEED TEST
 # ГОЛОСОВІ ПОВІДОМЛЕННЯ
-# якщо немає БД - команду на створення з усіма відповідними колонками
-# cursor.close()
-
+# словник нецензурної лексики
+# кастомну роль боту
+# гра, меню з грою (GUI)
+# embed = discord.Embed (що це?)
 
 from config import settings
 from discord.ext import commands
@@ -56,19 +56,16 @@ Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/
 
 # RSS
 #getting url from config.py
-post = feedparser.parse(settings['URL'])
-
-print(post.feed.title)
-print(post.feed.link)
-print(post.feed.description)
-print(post.feed.description)
+# post = feedparser.parse(settings['URL'])
+#
+# print(post.feed.title)
+# print(post.feed.link)
+# print(post.feed.description)
+# print(post.feed.description)
 # print(post.feed.published)
 # print(post.feed.published_parsed)
-parse()
 
-
-#================
-
+# parse()
 
 # connecting to database
 try:
@@ -180,9 +177,17 @@ async def on_command_error(ctx, error):
 # command for banning users
 @bot.command()
 @commands.has_permissions(administrator = True)
-async def ban(ctx, member: discord.Member, *, reason: str):
+async def ban(ctx, member: discord.Member, *, reason = None):
     if ctx.message.author.guild_permissions.administrator:
         await member.ban(reason = reason)
+       # cursor.execute(
+       #     'INSERT INTO banned_users(user_id, message_text, message_date, server_name) '
+       #     'VALUES(?, ?, ?, ?)',
+       #     (str(message.author), str(message.content), messageDate, str(message.guild.name)))
+       # sqlite_connection.commit()
+       # "user_id" TEXT UNIQUE,"ban_date"TEXT,ban_reason"TEXT,"user_message" TEXT,
+        await ctx.send("User", discord.Member,"was banned.")
+
 
 #The below code unbans player.
 @bot.command()

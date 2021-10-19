@@ -10,5 +10,9 @@ settings = {
     #'https://defence-ua.com/rss/feed.xml'
     'CLASS_DIV': '',
     'HOST': 'https://auto.ria.com',
-    'CONTENT-CLASS': 'na-card-item'
+    'CONTENT_CLASS': 'na-card-item',
+    'HEADERS': {'user-agent': 'Mozilla/5.0 '
+                              '(Windows NT 10.0; Win64; x64; rv:71.0) '
+                              'Gecko/20100101 Firefox/71.0', 'accept': '*/*'}
+
 }
