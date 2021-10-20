@@ -43,11 +43,11 @@ from config import settings
 from discord.ext import commands
 
 import discord
-import feedparser
+#import feedparser
 import xlsxwriter
 import sqlite3
 import os
-from parsing import parse
+#from parsing import parse
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
