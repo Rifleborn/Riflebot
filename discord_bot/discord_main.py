@@ -38,12 +38,13 @@
 # кастомну роль боту
 # гра, меню з грою (GUI)
 # embed = discord.Embed (що це?)
-
+# ВАЖЛИВО! КОМАНДУ НА ВЗЯТТЯ ВСІХ ДАНИХ З БД
+# шфирування?
 from config import settings
 from discord.ext import commands
 
 import discord
-#import feedparser
+import feedparser
 import xlsxwriter
 import sqlite3
 import os
@@ -52,12 +53,14 @@ import os
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
 #not all list of commands (command /help show all actual commands)
-Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all"]
+Commands = ["/help", "/clear_db table_name", "/get_message_date", "/fascist", "/get_latest", "/get_messages discord_tag", "/get_all", "/shutdown"]
+#pictures extensions
+pic_ext = ['.jpg', '.png', '.jpeg']
 
 # RSS
 #getting url from config.py
-# post = feedparser.parse(settings['URL'])
-#
+post = feedparser.parse(settings['URL'])
+
 # print(post.feed.title)
 # print(post.feed.link)
 # print(post.feed.description)
@@ -169,9 +172,9 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('Please pass in all requirements :rolling_eyes:.')
+        await ctx.send('Впишіть команду правильно :rolling_eyes:.')
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You dont have all the requirements :angry:")
+        await ctx.send("Ви не маєте відповідних прав :angry:")
 
 #admin/owner commands
 # command for banning users
@@ -206,24 +209,29 @@ async def unban(ctx, *, member):
                 return
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def shutdown(ctx):
     # @commands.is_owner()
-    if ctx.message.author.guild_permissions.administrator:
-        try:
-            if (sqlite_connection):
-                sqlite_connection.close()
-                cursor.close()
-                print("--Connection with SQLite closed--")
+    # if isinstance(error, commands.MissingRequiredArgument):
+    #     await ctx.send('Please pass in all requirements :rolling_eyes:.')
+    # if isinstance(error, commands.MissingPermissions):
+    #     await ctx.send("You dont have all the requirements :angry:")
+    #if ctx.message.author.guild_permissions.administrator:
+    try:
+        if (sqlite_connection):
+            sqlite_connection.close()
+            cursor.close()
+            print("--Connection with SQLite closed--")
 
-            try:
-                await ctx.bot.logout()
-                print("--Bot disabled--")
-            except RuntimeError:
-                print("--Event loop is closed")
-        except sqlite3.Error:
-            print("!-Shutdown error-!")
-    else:
-        print("---User have no permissions---")
+        try:
+            await ctx.bot.logout()
+            print("--Bot disabled--")
+        except RuntimeError:
+            print("--Event loop is closed")
+    except sqlite3.Error:
+        print("!-Shutdown error-!")
+   #else:
+    #    print("---User have no permissions---")
 
 @bot.command()
 async def clear_db(ctx, table_name: str):
@@ -292,7 +300,6 @@ async def get_message_date(ctx, user_tag: str, messageDate: str):
         try:
             cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name FROM users_messages '
                            'WHERE ((message_date like "'+messageDate+'") and (user_id = "' + str(user_tag) + '"))')
-                           #'WHERE ((CHARINDEX('+messageDate+', message_date) > 10)and (user_id = "' + str(user_tag) + '"))')
             sqlite_connection.commit()
             user_messages = cursor.fetchall();
         except Exception:
@@ -348,20 +355,33 @@ async def server(ctx):
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
+    messageText = message.content
+
     # insert message to DB if it isnt bot's message and not command
     if (message.content not in Commands) and (message.author != bot.user):
         messageDate = str(message.created_at);
         slice_object = slice(16)
         messageDate = messageDate[slice_object]
 
+    # if message is photo
+    # if len(message.attachments) > 0:  # Checks if there are attachments
+    #     for file in message.attachments:
+    #         for ext in pic_ext:
+    #               if file.filename.endswith(ext):
+    #                  #print(f"This message has an Image called: {file.filename}")
+    #                  #ftype = url.split('/')[-1]
+    #                  #myfile = requests.get(url)
+    #                  # saving message
+    #                  #open(f'D:\\Tools\\python\\file_{ftype}', 'wb').write(myfile.content)
+
         try:
             cursor.execute('INSERT INTO users_messages(user_id, message_text, message_date, server_name) VALUES(?, ?, ?, ?)',
                            (str(message.author), str(message.content), messageDate, str(message.guild.name)))
             sqlite_connection.commit()
-            # debug
-            print(f'User ID(tag): {message.author}\nMessage: {message.content}\n'
-                  f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
-                  f'Server: {message.guild.name}\n')
+
+            print(f'User ID(tag): {message.author}\nMessage: {messageText}\n'
+            f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
+            f'Server: {message.guild.name}\n')
         except sqlite3.Error:
             print("---Command/message was not writted---")
 
