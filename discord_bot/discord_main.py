@@ -1,4 +1,3 @@
-#==================VER 0.0.5===================
 # Project on discord API #Author: Rifleborn
 # Python (discord.py, XLSX, sqlite3, feedparser, request, BeatifulSoup), SQL, Markdown
 # BeautifulSoup - навігація по структурі отриманого HTML файлу
@@ -18,17 +17,12 @@ import discord
 import feedparser
 import xlsxwriter
 import sqlite3
-import traceback
-import sys
 from discord.ext.commands.errors import MemberNotFound
-from discord.ext.commands import has_permissions
-import uuid
-import requests
-import os
 #from parsing import parse
 
 #command prefix (was chosen acording to other bots prefix on server)
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all(), help_command=None)
+
 #not all list of commands (command /help show all actual commands)
 Commands = ["/help", "/clear_db table_name", "/get_message_date", "/get_messages discord_tag", "/get_all", "/shutdown"]
 #pictures extensions
@@ -116,7 +110,38 @@ async def export_xlsx(list_of_messages, file_name, ctx):
     workbook.close()
     await ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
 
-#def with clearing database tables
+async def export_bans(list_of_users, file_name, ctx):
+    # create a workbook and add a worksheet (XLSX).
+    workbook = xlsxwriter.Workbook('export/' + file_name + '.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    # style for cells
+    data_cell = workbook.add_format({'border': 1, 'bg_color': '#E1E4E3'})
+    column_name_cell = workbook.add_format({'border': 1, 'bg_color': '#79AD74'})
+
+    # Start from the first cell. Rows and columns are zero indexed.
+    row = 0
+    col = 0
+
+    # Resize columns
+    worksheet.set_column(0, 3, 24)
+
+    # Names for columns
+    worksheet.write(row, col, "ban_id", column_name_cell)
+    worksheet.write(row, col + 1, "user_tag", column_name_cell)
+    worksheet.write(row, col + 2, "ban_reason", column_name_cell)
+    row += 1
+
+    # Iterate over the data and write it out row by row.
+    # if (list_of_messages.user_id != ""):
+    for ban_id, user_tag, reason in (list_of_users):
+        worksheet.write(row, col, ban_id, data_cell)
+        worksheet.write(row, col + 1, user_tag, data_cell)
+        worksheet.write(row, col + 2, reason, data_cell)
+        row += 1
+    workbook.close()
+    await ctx.send(file=discord.File(r'export/' + file_name + '.xlsx'))
+
 async def clear_db_def(table_name, ctx):
     cursor.execute('DELETE FROM "' + table_name + '"')
     cursor.execute("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + table_name + "'");
@@ -124,7 +149,6 @@ async def clear_db_def(table_name, ctx):
     await ctx.send("Таблицю очищено.")
     print("--Database cleared--\n")
 
-#event when bot joined guild
 @bot.event
 async def on_guild_join(guild):
     for channel in guild.text_channels:
@@ -132,7 +156,6 @@ async def on_guild_join(guild):
             await channel.send('Доєднався до сервера.')
         break
 
-#event when bot is online
 @bot.event
 async def on_ready():
     try:
@@ -216,19 +239,16 @@ async def unban(ctx, *, member):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def shutdown(ctx):
-    try:
         if (sqlite_connection):
             sqlite_connection.close()
             cursor.close()
             print("--Connection with SQLite closed--")
-
-        try:
+        # try:
             await ctx.bot.logout()
             print("--Bot disabled--")
-        except RuntimeError:
-            print("--Event loop is closed")
-    except sqlite3.Error:
-        print("!-Shutdown error-!")
+        # except RuntimeError:
+        #     print("--Event loop is closed")
+
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -244,9 +264,8 @@ async def clear_db(ctx, table_name: str):
 
 #get all user messages
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def get_messages(ctx, user_tag: str):
-    # equialent of @commands.has_permissions(administrator=True)
-    if ctx.message.author.guild_permissions.administrator:
         cursor.execute('SELECT message_id, user_id, message_text, message_date, server_name, attachment_name FROM users_messages '
                    'WHERE user_id = "' + str(user_tag) + '"')
         sqlite_connection.commit()
@@ -255,8 +274,6 @@ async def get_messages(ctx, user_tag: str):
         await export_xlsx(user_messages,user_tag,ctx)
         # getting user_id and separating it from list
         print("--All messages by", user_tag, "sended in XLSX file--\n")
-    else:
-        print("--User have no permissions--\n")
 
 #get all user messages by data
 @bot.command()
@@ -282,18 +299,27 @@ async def get_message_date(ctx, user_tag: str, messageDate: str):
 
 #get xlsx file with all data from DB
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def get_all(ctx):
-    if ctx.message.author.guild_permissions.administrator:
         cursor.execute('SELECT * '
                        'FROM users_messages')
         sqlite_connection.commit()
         messages = cursor.fetchall()
-
         file_name = "all_messages"
         await export_xlsx(messages, file_name, ctx)
         print("--All messages sended--\n")
-    else:
-        print("---User have no permissions---\n")
+
+#get xlsx file with all data from DB
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def get_bans(ctx):
+        cursor.execute('SELECT * '
+                       'FROM banned_users')
+        sqlite_connection.commit()
+        users = cursor.fetchall()
+        file_name = "all_banned_users"
+        await export_bans(users, file_name, ctx)
+        print("--XLSX with banned users sended--\n")
 
 #=====================commands for all users==============================
 #context or ctx - channel in which command was writed
@@ -345,7 +371,7 @@ async def on_message(message):
             sqlite_connection.commit()
 
             print(f'User ID(tag): {message.author}\nMessage: {messageText}\n'
-            f'Date/Time | UTC/(GMT+3)-3 hours: {message.created_at}\n'
+            f'Date/Time | UTC: {message.created_at}\n'
             f'Server: {message.guild.name}\n')
         except sqlite3.Error:
             print("---Command/message was not writted---")
