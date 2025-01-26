@@ -26,7 +26,7 @@ def get_content(html):
         if uah_price:
             uah_price = uah_price.get_text().replace(' • ', '')
         else:
-            uah_price = 'Цену уточняйте'
+            uah_price = '';
         cars.append({
             'title': item.find('div', class_='na-card-name').get_text(strip=True),
             'link': HOST + item.find('span', class_='link').get('href'),
