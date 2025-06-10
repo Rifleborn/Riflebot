@@ -1,4 +1,3 @@
-#cd c:\Users\User\Desktop\bot
 #python test.py
 
 def shortest_word_function(words):
