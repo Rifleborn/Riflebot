@@ -1,15 +1,3 @@
-# Project on discord API #Author: Rifleborn
-# Python (discord.py, XLSX, sqlite3, feedparser, request, BeatifulSoup), SQL, Markdown
-# BeautifulSoup - навігація по структурі отриманого HTML файлу
-# Request
-# XLSX - створення книги з потрібними даними для виводу
-# sqlite3 - БД
-# feedparser - парсинг
-# discord.py - API
-# soupsieve - CSS selectors
-# XLSX writer docs https://xlsxwriter.readthedocs.io/tutorial01.html
-# XlsxWriter is a Python module for writing files in the Excel 2007+ XLSX file format.
-
 from config import settings
 from discord.ext import commands,tasks
 
@@ -166,31 +154,6 @@ async def on_ready():
     except:
         print("Error with logging")
 
-#========================commands===========================
-# @commands.Cog.listener()
-# async def on_command_error(self, ctx, error):
-#     if hasattr(ctx.command, 'on_error'):
-#         return
-# 
-#     cog = ctx.cog
-#     if cog:
-#         if cog._get_overridden_method(cog.cog_command_error) is not None:
-#             return
-# 
-#     ignored = (commands.CommandNotFound,)
-#     error = getattr(error, 'original', error)
-# 
-#     if isinstance(error, ignored):
-#         return
-#     if isinstance(error, commands.DisabledCommand):
-#         await ctx.send(f'{ctx.command} було виключено.')
-#     elif isinstance(error, commands.BadArgument):
-#         if ctx.command.qualified_name == 'tag list':
-#             await ctx.send('Неможливо знайти цього користувача.')
-#     #else:
-#         # усі інші помилки
-#         # print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-#         # traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 #admin/owner commands
 @bot.command()
@@ -346,7 +309,6 @@ async def on_message(message):
     await bot.process_commands(message)
     messageText = message.content
 
-    # processing if it isnt bot's message and not command
     if (message.author != bot.user):
         messageDate = str(message.created_at);
         slice_object = slice(16)
@@ -381,19 +343,7 @@ async def on_message(message):
         if message.content.startswith('/hi'):
             # message with mention of author(user)
             await message.channel.send(f'Hello {message.author.mention}!')
-        if message.content.startswith('/emoji'):
-            await message.channel.send("<:police:884470225452560445>")
-            #await message.channel.send(str(bot.get_emoji('884474673151221772')))
 
 #launch
 bot.run(settings['TOKEN'])
-
-# NOT DELETE THIS
-# auto - role
-# @Client.event
-# async def on_member_join(member):
-#     role = discord.utils.get(member.guild.roles, name='Unverified')
-#     await member.add_roles(role)
-
-
 
